@@ -25,26 +25,30 @@ function postChatMessage() {
     return;
   }
 
-  // 自分のユーザー名を取得
-  var id  = gapi.hangout.getParticipantId();
-  var me  = gapi.hangout.getParticipantById(id);
+  // 自分の情報を取得する
+  var id = gapi.hangout.getParticipantId();
+  var me = gapi.hangout.getParticipantById(id);
 
-  var dat = gadgets.json.stringify({
+  // 共有データを更新
+  var data = {};
+  data[new Date().getTime()] = gadgets.json.stringify({
     name: me.person.displayName,
     msg:  document.getElementById('msg').value
   });
+
+  gapi.hangout.data.submitDelta(data, []);
 }
 
-function updateChatPosts(state) {
+function updateChatPosts(e) {
   var keys = [];
-  for(var key in state) {
+  for(var key in e.state) {
     keys.push(key - 0); // キーを数値に変換
   }
   keys.sort(function(a, b) { return a-b; }); // 数値としてソート
 
   var html = [];
   for(var i = 0 ; i < keys.length ; i++) {
-    var data = gadgets.json.parse(state[keys[i]]);
+    var data = gadgets.json.parse(e.state[keys[i]]);
     html.push(
       gadgets.util.escapeString(data['name']) + '\n' +
       gadgets.util.escapeString(data['msg']));
@@ -53,11 +57,8 @@ function updateChatPosts(state) {
 }
 
 gapi.hangout.onApiReady.add(function(eventObj) {
-  if (eventObj.isApiReady) {
-    gapi.hangout.onParticipantsChanged.add(function(e) {
-      showNames(e.participants);
-    });
-    showNames(gapi.hangout.getParticipants());
+  if (eventObj.isApiReady()) {
+    gapi.hangout.data.onStateChanged.add(updateChatPosts);
   }
 });
 </script>
