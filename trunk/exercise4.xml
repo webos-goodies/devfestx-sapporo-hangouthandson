@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+  <ModulePrefs title="Hello World!">
+    <Require feature="rpc"/>
+  </ModulePrefs>
+  <Content type="html"><![CDATA[
+<div id="content"></div>
+
+<script src="//hangoutsapi.talkgadget.google.com/hangouts/api/hangout.js?v=0.1"></script>
+<script>
+function showNames(participants) {
+  var names = [];
+  for(var i = 0 ; i < participants.length ; i++) {
+    var p = participants[i];
+    if(p && p.person && p.person.displayName) {
+      var name = gadgets.util.escapeString(
+        participants[i].person.displayName);
+      names.push(name);
+    }
+  }
+  document.getElementById('content').innerHTML = names.join('<br>');
+}
+
+gapi.hangout.onApiReady.add(function(eventObj) {
+  if (eventObj.isApiReady) {
+    gapi.hangout.onParticipantsChanged.add(function(e) {
+      showNames(e.participants);
+    });
+    showNames(gapi.hangout.getParticipants());
+  }
+});
+</script>
+
+   ]]></Content>
+</Module>
