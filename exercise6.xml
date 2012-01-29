@@ -6,8 +6,8 @@
   <Content type="html"><![CDATA[
 
 <script src="//hangoutsapi.talkgadget.google.com/hangouts/api/hangout.js?v=0.1"></script>
-<div style="border:solid 1px black; height:300px; overflow:hidden;">
-  <div id="posts" style="white-space:pre;"></div>
+<div style="border:solid 1px black; height:300px; overflow:auto;">
+  <div id="posts" style="white-space:pre-wrap;"></div>
 </div>
 <div>
   <form action="#" onsubmit="postChatMessage(); return false;">
@@ -37,6 +37,7 @@ function postChatMessage() {
   });
 
   gapi.hangout.data.submitDelta(data, []);
+  document.getElementById('msg').value = '';
 }
 
 function updateChatPosts(e) {
@@ -44,7 +45,7 @@ function updateChatPosts(e) {
   for(var key in e.state) {
     keys.push(key - 0); // キーを数値に変換
   }
-  keys.sort(function(a, b) { return a-b; }); // 数値としてソート
+  keys.sort(function(a, b) { return b-a; }); // 数値としてソート
 
   var html = [];
   for(var i = 0 ; i < keys.length ; i++) {
