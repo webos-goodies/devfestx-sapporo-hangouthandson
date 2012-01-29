@@ -6,7 +6,7 @@
   <Content type="html"><![CDATA[
 
 <script src="//hangoutsapi.talkgadget.google.com/hangouts/api/hangout.js?v=0.1"></script>
-<h1>Hello World!</hq>
+<h1>Hello World!</h1>
 
    ]]></Content>
 </Module>
