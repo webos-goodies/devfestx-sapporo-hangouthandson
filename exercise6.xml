@@ -57,7 +57,7 @@ function updateChatPosts(e) {
 }
 
 gapi.hangout.onApiReady.add(function(eventObj) {
-  if (eventObj.isApiReady()) {
+  if (eventObj.isApiReady) {
     gapi.hangout.data.onStateChanged.add(updateChatPosts);
   }
 });
