@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+  <ModulePrefs title="Hello World!">
+    <Require feature="rpc"/>
+  </ModulePrefs>
+  <Content type="html"><![CDATA[
+
+<script src="//hangoutsapi.talkgadget.google.com/hangouts/api/hangout.js?v=0.1"></script>
+<div style="border:solid 1px black; height:300px; overflow:hidden;">
+  <div id="posts" style="white-space:pre;"></div>
+</div>
+<div>
+  <form action="#" onsubmit="postChatMessage(); return false;">
+    <input id="msg" type="text" size="80">
+    <input type="submit">
+  </form>
+</div>
+
+<script>
+// 処理効率は二の次で作っています。あしからず…
+
+function postChatMessage() {
+  if(!gapi.hangout.isApiReady()) {
+    alert('初期化が完了するまでお待ちください');
+    return;
+  }
+
+  // 自分のユーザー名を取得
+  var id  = gapi.hangout.getParticipantId();
+  var me  = gapi.hangout.getParticipantById(id);
+
+  var dat = gadgets.json.stringify({
+    name: me.person.displayName,
+    msg:  document.getElementById('msg').value
+  });
+}
+
+function updateChatPosts(state) {
+  var keys = [];
+  for(var key in state) {
+    keys.push(key - 0); // キーを数値に変換
+  }
+  keys.sort(function(a, b) { return a-b; }); // 数値としてソート
+
+  var html = [];
+  for(var i = 0 ; i < keys.length ; i++) {
+    var data = gadgets.json.parse(state[keys[i]]);
+    html.push(
+      gadgets.util.escapeString(data['name']) + '\n' +
+      gadgets.util.escapeString(data['msg']));
+  }
+  document.getElementById('posts').innerHTML = html.join('\n\n');
+}
+
+gapi.hangout.onApiReady.add(function(eventObj) {
+  if (eventObj.isApiReady) {
+    gapi.hangout.onParticipantsChanged.add(function(e) {
+      showNames(e.participants);
+    });
+    showNames(gapi.hangout.getParticipants());
+  }
+});
+</script>
+
+   ]]></Content>
+</Module>
