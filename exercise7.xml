@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+  <ModulePrefs title="Your App Name">
+    <Require feature="rpc"/>
+    <Require feature="views"/>
+  </ModulePrefs>
+  <Content type="html">
+    <![CDATA[
+
+<style>
+  .profile {
+    padding: 8px 0;
+    border-bottom: solid 1px black;
+  }
+</style>
+
+<div id="profiles"></div>
+
+<script src="//hangoutsapi.talkgadget.google.com/hangouts/api/hangout.js?v=0.1"></script>
+<script>
+var g_gplusApiKey = 'AIzaSyDlSUZoRH5kERDrBDLDNLCyis4drcam8eQ'; // 自分のものに置き換えてください
+var g_profiles    = {};
+
+// 現在の参加者を取得し、必要ならGoogle+ APIにリクエストを行なう
+function updateParticipants(participants) {
+  for(var i = 0 ; i < participants.length ; i++) {
+    var participant = participants[i];
+    if(participant.hasAppEnabled &&
+       participant.person && participant.person.id) {
+      if(!g_profiles[participant.person.id]) {
+
+        // 情報がないときは、Google+ APIを使って取得する
+        var url =
+          'https://www.googleapis.com/plus/v1/people/' +
+          encodeURIComponent(participant.person.id) +
+          '?key=' + encodeURIComponent(g_gplusApiKey);
+        var params = {};
+        params[gadgets.io.RequestParameters.CONTENT_TYPE] =
+          gadgets.io.ContentType.JSON;
+        gadgets.io.makeRequest(url, receivePerson, params);
+
+      }
+    }
+
+  }
+}
+
+// Google+ API get people のレスポンスを処理
+function receivePerson(response) {
+  if((response.errors || []).length <= 0 && (response.rc == 200 || response.rc == 201)) {
+
+    var person = response.data;
+    if(person && !g_profiles[person.id]) {
+      g_profiles[person.id] = person;
+
+      var participants = gapi.hangout.getParticipants();
+      var html         = [];
+      for(var i = 0 ; i < participants.length ; i++) {
+        var participant = participants[i];
+        if(participant.hasAppEnabled && participant.person) {
+          var profile = g_profiles[participant.person.id];
+          if(profile) {
+            html.push(displayProfile(profile));
+          }
+        }
+      }
+
+      document.getElementById('profiles').innerHTML = html.join('');
+    }
+  }
+}
+
+// 参加者の情報を表示するHTMLを生成する
+function displayProfile(profile) {
+  var html = ['<div class="profile"><div class="name">'];
+  var esc  = gadgets.util.escapeString;
+
+  if(profile.url) {
+    html.push('<a target="_blank" href="' + esc(profile.url) + '">');
+    html.push(esc(profile.displayName || ''));
+    html.push('</a>');
+  } else {
+    html.push(esc(profile.displayName || ''));
+  }
+  html.push('</div>');
+
+  if(profile.aboutMe) {
+    html.push('<div class="aboutme">');
+    html.push(profile.aboutMe); // aboutMeはHTMLを含んでいるので、エスケープしない
+    html.push('</div>')
+  }
+
+  html.push('</div>');
+  return html.join('');
+};
+
+// アプリケーションの初期化
+gapi.hangout.onApiReady.add(function(e) {
+  try {
+    if(e.isApiReady) {
+      updateParticipants(gapi.hangout.getParticipants());
+      gapi.hangout.onParticipantsChanged.add(function(e) {
+        updateParticipants(e.participants);
+      });
+    }
+  } catch(e) {
+    console.log(e.stack);
+  }
+});
+</script>
+
+    ]]>
+  </Content>
+</Module>
